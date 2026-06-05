@@ -29,7 +29,7 @@ onUnmounted(() => {
     <section class="page-title">
       <span class="eyebrow">预约凭证</span>
       <h1>北京文旅预约凭证</h1>
-      <p>预约建议生成后会同步为飞机票样式电子凭证，便于查看场馆、时间、出行人、预约编号和核销联。</p>
+      <p>预约成功后可查看飞机票样式电子凭证，集中展示场馆、时间、出行人、预约编号和核销联信息。</p>
     </section>
 
     <el-empty v-if="!booking.tickets.length" description="暂无电子门票">

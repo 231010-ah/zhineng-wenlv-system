@@ -7,6 +7,7 @@ const routes = [
   { path: '/register', name: 'register', component: () => import('../views/Register.vue'), meta: { title: '注册', guestOnly: true, public: true } },
   { path: '/venues', name: 'venues', component: () => import('../views/Venues.vue'), meta: { title: '文化场馆' } },
   { path: '/exhibitions', name: 'exhibitions', component: () => import('../views/Exhibitions.vue'), meta: { title: '展览查看' } },
+  { path: '/exhibitions/:exhibitionId', name: 'exhibition-detail', component: () => import('../views/ExhibitionDetail.vue'), meta: { title: '特色物品介绍' } },
   { path: '/reservation/:venueId?', name: 'reservation', component: () => import('../views/Reservation.vue'), meta: { title: '预约建议', requiresAuth: true } },
   { path: '/tickets', name: 'tickets', component: () => import('../views/Tickets.vue'), meta: { title: '预约凭证', requiresAuth: true } },
   { path: '/records', name: 'records', component: () => import('../views/Records.vue'), meta: { title: '预约记录', requiresAuth: true } },

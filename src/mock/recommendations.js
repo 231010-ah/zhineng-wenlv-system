@@ -5,7 +5,50 @@ export const recommendations = [
     venue: '故宫博物院',
     match: 98,
     reason: '匹配历史文化、古建筑、摄影打卡兴趣。建议选择 08:30 入场，避开午后团队高峰。',
-    route: '/reservation/palace-museum'
+    route: '/reservation/palace-museum',
+    duration: '半日 4.5 小时',
+    depart: '08:10 到达天安门东',
+    transport: '地铁 1 号线 + 步行',
+    pace: '轻中等步行',
+    highlights: ['中轴线', '古建摄影', '宫廷展陈'],
+    stops: [
+      {
+        time: '08:10',
+        name: '天安门东站集合',
+        stay: '20 分钟',
+        action: '完成安检预留，沿长安街步行到午门。',
+        transfer: '步行约 1.1 公里，建议提前准备身份证件。'
+      },
+      {
+        time: '08:40',
+        name: '午门入宫',
+        stay: '35 分钟',
+        action: '从午门进入，拍摄端门、午门与太和门轴线。',
+        transfer: '避开中路人群时可先走东侧廊道。'
+      },
+      {
+        time: '09:20',
+        name: '三大殿核心区',
+        stay: '70 分钟',
+        action: '游览太和殿、中和殿、保和殿，理解中轴礼制空间。',
+        transfer: '核心区开阔，晴天注意防晒和补水。'
+      },
+      {
+        time: '10:45',
+        name: '珍宝馆 / 钟表馆',
+        stay: '75 分钟',
+        action: '根据兴趣选择展馆，适合历史文化与器物细节观察。',
+        transfer: '展馆另需预约或购票，建议入园前确认。'
+      },
+      {
+        time: '12:05',
+        name: '神武门离馆',
+        stay: '25 分钟',
+        action: '从北门离开，可继续前往景山俯瞰中轴线。',
+        transfer: '神武门出口距离景山公园南门约 500 米。'
+      }
+    ],
+    notes: ['优先预约早场，光线适合拍摄建筑层次。', '中轴线游览建议从南向北走，方向感更清晰。', '午后团队客流上升，12 点前离开体验更稳。']
   },
   {
     id: 'rec-2',
@@ -13,7 +56,50 @@ export const recommendations = [
     venue: '国家博物馆',
     match: 96,
     reason: '适合博物馆、红色文化和亲子研学用户。建议提前预约，并预留 3 小时以上。',
-    route: '/reservation/national-museum'
+    route: '/reservation/national-museum',
+    duration: '半日 4 小时',
+    depart: '09:00 抵达天安门东',
+    transport: '地铁 1 号线 / 公交',
+    pace: '室内参观为主',
+    highlights: ['红色文化', '通史展览', '亲子研学'],
+    stops: [
+      {
+        time: '09:00',
+        name: '天安门东站出发',
+        stay: '25 分钟',
+        action: '按预约入口排队安检，预留证件核验时间。',
+        transfer: '地铁出站后步行约 600 米到国家博物馆北门。'
+      },
+      {
+        time: '09:30',
+        name: '国家博物馆入馆',
+        stay: '30 分钟',
+        action: '先确认临展位置和讲解服务，规划楼层顺序。',
+        transfer: '热门展厅建议先去，减少回头路。'
+      },
+      {
+        time: '10:05',
+        name: '古代中国基本陈列',
+        stay: '95 分钟',
+        action: '从远古到明清顺序参观，适合亲子做主题记录。',
+        transfer: '展线较长，可在中段休息区短暂停留。'
+      },
+      {
+        time: '11:50',
+        name: '复兴之路主题展',
+        stay: '55 分钟',
+        action: '结合红色文化兴趣，补充近现代历史线索。',
+        transfer: '展厅信息密度高，建议预留讲解时间。'
+      },
+      {
+        time: '12:55',
+        name: '天安门广场外部参观',
+        stay: '35 分钟',
+        action: '离馆后沿广场东侧步行，完成红色文化路线收束。',
+        transfer: '广场管理严格，按现场导流路线通行。'
+      }
+    ],
+    notes: ['国家博物馆必须实名预约，临时改期风险较高。', '亲子路线建议提前选 3 个重点展品，避免信息过载。', '广场周边安检频繁，减少大件行李。']
   },
   {
     id: 'rec-3',
@@ -21,7 +107,50 @@ export const recommendations = [
     venue: '什刹海与南锣鼓巷',
     match: 93,
     reason: '匹配胡同文化、美食探店、城市漫游和夜游经济标签，傍晚景观好但客流偏高。',
-    route: '/reservation/shichahai-hutong'
+    route: '/reservation/shichahai-hutong',
+    duration: '傍晚 3.5 小时',
+    depart: '16:30 抵达北海北',
+    transport: '地铁 6 号线 + 步行',
+    pace: '慢行漫游',
+    highlights: ['胡同文化', '美食探店', '夜景'],
+    stops: [
+      {
+        time: '16:30',
+        name: '北海北站出发',
+        stay: '15 分钟',
+        action: '从 B 口出站，向荷花市场方向进入什刹海。',
+        transfer: '全程以步行为主，建议穿舒适鞋。'
+      },
+      {
+        time: '16:50',
+        name: '前海水岸',
+        stay: '45 分钟',
+        action: '沿湖慢行，观察胡同与水岸空间的转换。',
+        transfer: '傍晚逆光适合拍摄湖面和街巷剪影。'
+      },
+      {
+        time: '17:45',
+        name: '烟袋斜街',
+        stay: '35 分钟',
+        action: '进入传统商业街巷，可安排小吃和文创停留。',
+        transfer: '街巷较窄，高峰时保持单向游览节奏。'
+      },
+      {
+        time: '18:30',
+        name: '鼓楼外观与胡同支线',
+        stay: '40 分钟',
+        action: '走向鼓楼，选择帽儿胡同或雨儿胡同支线。',
+        transfer: '支线更安静，适合了解院落肌理。'
+      },
+      {
+        time: '19:25',
+        name: '南锣鼓巷收尾',
+        stay: '45 分钟',
+        action: '完成美食探店和夜游体验，可从南锣鼓巷站离开。',
+        transfer: '晚间客流高，返程地铁比打车更稳定。'
+      }
+    ],
+    notes: ['这条路线不适合赶时间，慢行体验最好。', '晚饭建议安排在南锣鼓巷周边支巷，主街排队更久。', '带老人或儿童时可在鼓楼站提前结束。']
   },
   {
     id: 'rec-4',
@@ -29,6 +158,49 @@ export const recommendations = [
     venue: '首都博物馆 / 北京大运河博物馆',
     match: 90,
     reason: '适合亲子研学与城市历史路线，可按上午西城、下午通州的两段式行程安排。',
-    route: '/reservation/capital-museum'
+    route: '/reservation/capital-museum',
+    duration: '一日 7 小时',
+    depart: '09:20 抵达木樨地',
+    transport: '地铁 1 号线 + 6 号线',
+    pace: '两段式研学',
+    highlights: ['城市历史', '亲子研学', '大运河'],
+    stops: [
+      {
+        time: '09:20',
+        name: '首都博物馆入馆',
+        stay: '30 分钟',
+        action: '领取导览信息，先确认儿童活动或临展场次。',
+        transfer: '木樨地站出站后步行约 700 米。'
+      },
+      {
+        time: '10:00',
+        name: '北京历史文化展线',
+        stay: '110 分钟',
+        action: '围绕城市起源、都城建设和民俗生活做研学记录。',
+        transfer: '建议设置 3 个观察问题，提高孩子参与感。'
+      },
+      {
+        time: '12:10',
+        name: '午餐与转场',
+        stay: '80 分钟',
+        action: '在复兴门或建国门周边用餐，转乘地铁前往通州。',
+        transfer: '跨城转场时间较长，午餐不要压缩太紧。'
+      },
+      {
+        time: '13:40',
+        name: '北京大运河博物馆',
+        stay: '120 分钟',
+        action: '从运河文明、漕运和城市副中心角度延展学习。',
+        transfer: '展馆空间较大，适合安排主题任务卡。'
+      },
+      {
+        time: '15:55',
+        name: '城市绿心周边散步',
+        stay: '40 分钟',
+        action: '在户外空间放松，完成一日研学总结。',
+        transfer: '天气不好时可改为馆内文创区停留。'
+      }
+    ],
+    notes: ['一日双馆要控制展览重点，不建议逐厅打卡。', '亲子研学可让孩子负责拍照、记录、复述三个任务。', '通州返程较远，建议避开晚高峰前半段。']
   }
 ]
