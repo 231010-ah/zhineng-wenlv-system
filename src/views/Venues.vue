@@ -16,11 +16,35 @@ const averageCrowd = computed(() => {
   return Math.round(venues.value.reduce((total, venue) => total + venue.crowd, 0) / venues.value.length)
 })
 const calmVenues = computed(() => venues.value.filter((venue) => venue.crowd <= 65).length)
+const signalStats = computed(() => [
+  { label: '预约余量', value: totalRemaining.value, suffix: '' },
+  { label: '平均在馆率', value: averageCrowd.value, suffix: '%' },
+  { label: '舒适点位', value: calmVenues.value, suffix: '' }
+])
 const journeySteps = computed(() => [
   { title: '早场入园', value: '08:30', copy: '优先选择核心场馆早场，减少排队和安检等待。' },
   { title: '主题串联', value: '3 条', copy: '中轴线、博物馆、胡同漫游三类路线拆分清晰。' },
   { title: '客流判断', value: `${averageCrowd.value}%`, copy: '结合预约余量和在馆率，给出更稳的出行节奏。' }
 ])
+
+const getCrowdTone = (crowd) => {
+  if (crowd >= 80) return '#8f3a32'
+  if (crowd < 60) return '#84a889'
+  return '#bfa276'
+}
+
+const getCrowdProgressStyle = (crowd) => ({
+  '--progress-value': `${Math.min(crowd, 100)}%`,
+  '--progress-color': getCrowdTone(crowd)
+})
+
+const getRemainingProgressStyle = (venue) => {
+  const availability = venue.capacity ? Math.min(Math.round((venue.remaining / venue.capacity) * 100), 100) : 0
+  return {
+    '--progress-value': `${availability}%`,
+    '--progress-color': getCrowdTone(venue.crowd)
+  }
+}
 
 const setCounterValue = (element, value) => {
   element.textContent = `${Math.round(value).toLocaleString('zh-CN')}${element.dataset.suffix || ''}`
@@ -150,17 +174,9 @@ onUnmounted(() => {
         </strong>
         <p>结合预约余量、在馆率和主题标签，把适合立即出发的地点前置。</p>
         <div class="signal-grid">
-          <span>
-            <b data-counter :data-count="totalRemaining">{{ totalRemaining }}</b>
-            预约余量
-          </span>
-          <span>
-            <b data-counter :data-count="averageCrowd" data-suffix="%">{{ averageCrowd }}%</b>
-            平均在馆率
-          </span>
-          <span>
-            <b data-counter :data-count="calmVenues">{{ calmVenues }}</b>
-            舒适点位
+          <span v-for="stat in signalStats" :key="stat.label" class="signal-metric">
+            <b data-counter :data-count="stat.value" :data-suffix="stat.suffix">{{ stat.value }}{{ stat.suffix }}</b>
+            {{ stat.label }}
           </span>
         </div>
       </aside>
@@ -192,8 +208,14 @@ onUnmounted(() => {
         </div>
         <div class="venue-body">
           <div class="venue-meta">
-            <span>{{ venue.type }}</span>
-            <span>{{ venue.area }}</span>
+            <span class="venue-type">{{ venue.type }}</span>
+            <span class="location-badge">
+              <svg viewBox="0 0 16 16" aria-hidden="true">
+                <path d="M8 14s5-4.6 5-8.2A5 5 0 0 0 3 5.8C3 9.4 8 14 8 14Z" />
+                <circle cx="8" cy="5.8" r="1.8" />
+              </svg>
+              {{ venue.area }}
+            </span>
           </div>
           <h2>{{ venue.name }}</h2>
           <p>{{ venue.intro }}</p>
@@ -201,12 +223,18 @@ onUnmounted(() => {
             <span v-for="tag in venue.tags" :key="tag">{{ tag }}</span>
           </div>
           <div class="venue-stats">
-            <strong>{{ venue.remaining }}</strong>
-            <span>预约余量</span>
-            <strong>{{ venue.crowd }}%</strong>
-            <span>在馆率</span>
+            <div class="stat-block">
+              <span>预约余量</span>
+              <strong>{{ venue.remaining.toLocaleString('zh-CN') }}</strong>
+              <i class="progress-track" :style="getRemainingProgressStyle(venue)"></i>
+            </div>
+            <div class="stat-block">
+              <span>在馆率</span>
+              <strong>{{ venue.crowd }}%</strong>
+              <i class="progress-track" :style="getCrowdProgressStyle(venue.crowd)"></i>
+            </div>
           </div>
-          <router-link class="liquid-button" :to="`/reservation/${venue.id}`">查看预约建议</router-link>
+          <router-link class="venue-action liquid-button" :to="`/reservation/${venue.id}`">查看预约建议</router-link>
         </div>
       </article>
     </section>
@@ -251,32 +279,54 @@ onUnmounted(() => {
   display: block;
   margin: 14px 0 8px;
   font-size: clamp(28px, 3.6vw, 42px);
+  font-weight: 800;
   line-height: 1;
+  letter-spacing: 0;
 }
 
 .signal-grid {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
-  gap: 10px;
+  gap: 0;
   margin-top: 16px;
+  padding: 12px 0;
+  border: 1px solid rgba(255, 255, 255, 0.1);
+  border-radius: 16px;
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.065), rgba(255, 255, 255, 0.018)),
+    rgba(4, 13, 24, 0.24);
 }
 
-.signal-grid span {
+.signal-metric {
+  position: relative;
   display: grid;
   gap: 5px;
-  min-height: 68px;
+  min-height: 58px;
   align-content: center;
-  padding: 10px;
-  border: 1px solid rgba(255, 255, 255, 0.09);
-  border-radius: 16px;
+  padding: 4px 12px;
   color: var(--faint);
   font-size: 12px;
-  background: rgba(255, 255, 255, 0.045);
+  text-align: center;
 }
 
-.signal-grid b {
-  color: var(--cyan);
-  font-size: 20px;
+.signal-metric:not(:last-child)::after {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 0;
+  width: 1px;
+  height: 24px;
+  background: rgba(255, 255, 255, 0.22);
+  transform: translateY(-50%);
+}
+
+.signal-metric b {
+  color: var(--text);
+  font-family: "Inter", "DIN Alternate", "PingFang SC", system-ui, sans-serif;
+  font-size: 24px;
+  font-weight: 800;
+  line-height: 1;
+  text-shadow: 0 0 18px rgba(212, 175, 55, 0.16);
 }
 
 .venue-journey {
@@ -307,9 +357,9 @@ onUnmounted(() => {
   top: 12px;
   bottom: 12px;
   left: 8px;
-  width: 2px;
-  background: linear-gradient(180deg, var(--cyan), var(--gold), var(--green));
-  opacity: 0.82;
+  width: 1px;
+  background: rgba(255, 215, 0, 0.2);
+  opacity: 1;
 }
 
 .journey-steps article {
@@ -321,17 +371,19 @@ onUnmounted(() => {
   content: "";
   position: absolute;
   top: 9px;
-  left: 2px;
-  width: 14px;
-  height: 14px;
+  left: 5px;
+  width: 7px;
+  height: 7px;
   border-radius: 50%;
-  background: var(--cyan);
-  box-shadow: 0 0 20px rgba(158, 216, 223, 0.3);
+  background: #d4af37;
+  box-shadow: 0 0 14px rgba(212, 175, 55, 0.34);
 }
 
 .journey-steps strong {
-  color: var(--gold);
+  color: #d4af37;
   font-size: 22px;
+  font-weight: 700;
+  text-shadow: 0 0 13px rgba(212, 175, 55, 0.36);
 }
 
 .journey-steps h3 {
@@ -377,19 +429,24 @@ onUnmounted(() => {
   will-change: transform;
 }
 
-.venue-card:hover {
+.venue-card:hover,
+.venue-card:focus-within {
   border-color: rgba(234, 244, 255, 0.38);
-  box-shadow: 0 28px 78px rgba(0, 0, 0, 0.42), 0 0 32px rgba(158, 216, 223, 0.1);
-  transform: translateY(-3px);
+  box-shadow:
+    0 34px 82px rgba(0, 0, 0, 0.48),
+    0 0 34px rgba(191, 162, 118, 0.14);
+  transform: translateY(-4px);
 }
 
-.venue-card:hover img {
+.venue-card:hover img,
+.venue-card:focus-within img {
   transform: scale(1.035);
 }
 
 .venue-card img,
-.venue-card {
-  transition: transform 260ms ease, border-color 220ms ease, box-shadow 220ms ease;
+.venue-card,
+.venue-action {
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .venue-meta,
@@ -403,8 +460,31 @@ onUnmounted(() => {
 
 .venue-meta {
   justify-content: space-between;
-  color: var(--gold);
   font-size: 13px;
+}
+
+.venue-type {
+  color: rgba(246, 242, 234, 0.58);
+}
+
+.location-badge {
+  display: inline-flex;
+  align-items: center;
+  gap: 5px;
+  color: #bfa276;
+  white-space: nowrap;
+  text-shadow: 0 0 12px rgba(191, 162, 118, 0.18);
+}
+
+.location-badge svg {
+  width: 12px;
+  height: 12px;
+  fill: none;
+  stroke: currentColor;
+  stroke-width: 1.35;
+  stroke-linecap: round;
+  stroke-linejoin: round;
+  opacity: 0.9;
 }
 
 h2 {
@@ -421,24 +501,85 @@ p {
 
 .tag-row {
   margin: 14px 0;
+  gap: 7px;
 }
 
 .tag-row span {
-  padding: 5px 10px;
-  border-radius: 999px;
-  background: rgba(255, 255, 255, 0.07);
+  display: inline-flex;
+  align-items: center;
+  min-height: 24px;
+  padding: 3px 8px;
+  border: 1px solid rgba(255, 255, 255, 0.15);
+  border-radius: 4px;
   color: var(--muted);
   font-size: 12px;
+  line-height: 1;
 }
 
 .venue-stats {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 14px;
   margin-bottom: 18px;
   color: var(--faint);
 }
 
-.venue-stats strong {
+.stat-block {
+  display: grid;
+  gap: 7px;
+}
+
+.stat-block span {
+  font-size: 12px;
+}
+
+.stat-block strong {
   color: var(--text);
   font-size: 20px;
+  font-family: "Inter", "DIN Alternate", "PingFang SC", system-ui, sans-serif;
+  font-weight: 760;
+  line-height: 1;
+}
+
+.progress-track {
+  position: relative;
+  display: block;
+  width: 100%;
+  height: 3px;
+  overflow: hidden;
+  border-radius: 999px;
+  background: rgba(255, 255, 255, 0.11);
+}
+
+.progress-track::after {
+  content: "";
+  position: absolute;
+  inset: 0 auto 0 0;
+  width: var(--progress-value);
+  border-radius: inherit;
+  background: linear-gradient(90deg, rgba(255, 255, 255, 0.18), var(--progress-color));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--progress-color) 58%, transparent);
+  transition: width 0.4s cubic-bezier(0.25, 1, 0.5, 1), background 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.venue-action.liquid-button {
+  width: 100%;
+  background: transparent;
+  border: 1px solid rgba(255, 255, 255, 0.4);
+  color: #fff;
+  box-shadow: none;
+}
+
+.venue-action.liquid-button:hover {
+  transform: none;
+  box-shadow: none;
+}
+
+.venue-card:hover .venue-action.liquid-button,
+.venue-card:focus-within .venue-action.liquid-button {
+  background: #fff;
+  border-color: #fff;
+  color: #060606;
 }
 
 @media (max-width: 760px) {
@@ -460,6 +601,16 @@ p {
 
   .signal-grid {
     grid-template-columns: 1fr;
+  }
+
+  .signal-metric:not(:last-child)::after {
+    top: auto;
+    right: 22px;
+    bottom: 0;
+    left: 22px;
+    width: auto;
+    height: 1px;
+    transform: none;
   }
 
   .venue-grid {

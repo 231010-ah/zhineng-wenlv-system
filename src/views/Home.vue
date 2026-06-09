@@ -376,8 +376,8 @@ onBeforeUnmount(() => {
           熟悉北京文化、旅游、博物馆、展览、历史街区、非遗体验、城市漫游和亲子研学路线。根据你的时间、兴趣、人数和出行方式，生成推荐、讲解、路线规划、预约建议和个性化行程方案。
         </p>
         <div class="cosmic-actions">
-          <router-link class="cosmic-button solid" to="/venues">查看北京景点</router-link>
-          <router-link class="cosmic-button outline" to="/recommendations">生成兴趣推荐</router-link>
+          <router-link class="cosmic-button outline secondary" to="/venues">查看北京景点</router-link>
+          <router-link class="cosmic-button solid primary" to="/recommendations">生成兴趣推荐</router-link>
         </div>
       </div>
 
@@ -414,7 +414,7 @@ onBeforeUnmount(() => {
     <section class="cosmic-section journal-section">
       <div class="cosmic-section-head reveal-item">
         <div>
-          <p class="cosmic-label">Recent Thoughts</p>
+          <p class="cosmic-label">Core Capabilities</p>
           <h2>核心 <span>能力</span></h2>
           <p>推荐、讲解、预约、路线规划一体化。支持一日游、两日游、周末游、亲子研学、博物馆路线、古都文化路线、胡同 city walk、夜游北京、非遗体验和红色文化路线。</p>
         </div>
@@ -494,17 +494,36 @@ onBeforeUnmount(() => {
 
 <style scoped>
 .cosmic-home {
-  --cosmic-bg: #0a0a0a;
-  --cosmic-surface: #141414;
+  --cosmic-bg: #050505;
+  --cosmic-surface: #14100f;
   --cosmic-text: #f5f5f5;
-  --cosmic-muted: #878787;
-  --cosmic-stroke: #202020;
-  --cosmic-gradient: linear-gradient(90deg, #89aacc 0%, #4e85bf 100%);
+  --cosmic-muted: #8c8c8c;
+  --cosmic-stroke: rgba(229, 205, 151, 0.16);
+  --cosmic-gradient: linear-gradient(90deg, #d8b86c 0%, #f1efe7 46%, #7bb2bd 100%);
   min-height: 100vh;
   overflow: hidden;
-  background: var(--cosmic-bg);
+  position: relative;
+  isolation: isolate;
+  background:
+    radial-gradient(circle at top, #140505 0%, #050505 60%, #000000 100%),
+    var(--cosmic-bg);
   color: var(--cosmic-text);
   font-family: "ZQKNBCGPST", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.cosmic-home::before {
+  content: "";
+  position: fixed;
+  inset: 0;
+  z-index: -2;
+  pointer-events: none;
+  background:
+    radial-gradient(circle at 50% 10%, rgba(216, 184, 108, 0.08), transparent 28rem),
+    linear-gradient(115deg, rgba(255, 255, 255, 0.035) 0 1px, transparent 1px 18px),
+    linear-gradient(180deg, rgba(109, 37, 27, 0.16), transparent 34%, rgba(0, 0, 0, 0.42));
+  background-size: auto, 18px 18px, auto;
+  opacity: 0.42;
+  mix-blend-mode: screen;
 }
 
 .cosmic-hero {
@@ -522,19 +541,22 @@ onBeforeUnmount(() => {
   inset: 0;
   z-index: -3;
   background:
-    radial-gradient(circle at 50% 42%, rgba(137, 170, 204, 0.22), transparent 22rem),
-    radial-gradient(circle at 18% 18%, rgba(78, 133, 191, 0.22), transparent 20rem),
-    radial-gradient(circle at 82% 70%, rgba(255, 255, 255, 0.1), transparent 18rem),
-    linear-gradient(180deg, rgba(0, 0, 0, 0.1), #0a0a0a 88%);
+    radial-gradient(circle at 50% 38%, rgba(216, 184, 108, 0.13), transparent 24rem),
+    radial-gradient(circle at 18% 18%, rgba(126, 39, 31, 0.24), transparent 22rem),
+    radial-gradient(circle at 82% 70%, rgba(123, 178, 189, 0.11), transparent 20rem),
+    radial-gradient(circle at top, #140505 0%, #050505 60%, #000000 100%);
 }
 
 .cosmic-backdrop::after {
   content: "";
   position: absolute;
   inset: 0;
-  opacity: 0.36;
-  background-image: radial-gradient(circle, rgba(255, 255, 255, 0.55) 0 1px, transparent 1.5px);
-  background-size: 44px 44px;
+  opacity: 0.2;
+  background:
+    radial-gradient(circle, rgba(255, 245, 214, 0.38) 0 0.7px, transparent 1.2px),
+    linear-gradient(90deg, rgba(255, 245, 214, 0.05) 0 1px, transparent 1px 52px),
+    linear-gradient(0deg, rgba(255, 245, 214, 0.035) 0 1px, transparent 1px 52px);
+  background-size: 48px 48px, 52px 52px, 52px 52px;
   mask-image: radial-gradient(circle at center, black, transparent 70%);
 }
 
@@ -587,8 +609,8 @@ onBeforeUnmount(() => {
 .cosmic-slide-card,
 .cosmic-slide-chip {
   flex: 0 0 auto;
-  border: 1px solid rgba(255, 255, 255, 0.1);
-  background: rgba(20, 20, 20, 0.76);
+  border: 1px solid rgba(229, 205, 151, 0.14);
+  background: rgba(20, 10, 9, 0.72);
   backdrop-filter: blur(14px);
 }
 
@@ -628,9 +650,9 @@ onBeforeUnmount(() => {
 .cosmic-eyebrow,
 .cosmic-label {
   margin: 0 0 28px;
-  color: var(--cosmic-muted);
-  font-size: 12px;
-  letter-spacing: 0.3em;
+  color: #8c8c8c;
+  font-size: 0.75rem;
+  letter-spacing: 0.25em;
   text-transform: uppercase;
 }
 
@@ -647,6 +669,11 @@ onBeforeUnmount(() => {
 
 .cosmic-title {
   font-size: clamp(58px, 9.6vw, 132px);
+  color: #fbf6e9;
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.12),
+    0 0 28px rgba(215, 180, 106, 0.1),
+    0 18px 40px rgba(0, 0, 0, 0.42);
 }
 
 .cosmic-title span,
@@ -693,29 +720,65 @@ onBeforeUnmount(() => {
   border-radius: 999px;
   font-size: 14px;
   font-weight: 600;
-  transition: border-color 180ms ease, background 180ms ease, color 180ms ease;
+  overflow: hidden;
+  isolation: isolate;
+  transition: border-color 180ms ease, background 180ms ease, color 180ms ease, box-shadow 180ms ease;
   will-change: transform;
 }
 
 .cosmic-button.solid {
-  background: var(--cosmic-text);
-  color: var(--cosmic-bg);
+  border: 1px solid rgba(229, 205, 151, 0.54);
+  background:
+    linear-gradient(135deg, rgba(241, 239, 231, 0.96), rgba(216, 184, 108, 0.86) 48%, rgba(123, 178, 189, 0.82));
+  color: #120807;
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.08),
+    0 14px 34px rgba(0, 0, 0, 0.34),
+    0 0 34px rgba(216, 184, 108, 0.18);
 }
 
 .cosmic-button.outline {
-  border: 2px solid var(--cosmic-stroke);
-  background: var(--cosmic-bg);
+  border: 1px solid rgba(245, 245, 245, 0.34);
+  background: rgba(5, 5, 5, 0.48);
   color: var(--cosmic-text);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 12px 28px rgba(0, 0, 0, 0.24);
+}
+
+.cosmic-button.primary::before {
+  content: "";
+  position: absolute;
+  inset: 0;
+  z-index: 1;
+  padding: 1px;
+  border-radius: inherit;
+  background: conic-gradient(from 0deg, transparent 0 28%, rgba(255, 252, 231, 0.94), rgba(216, 184, 108, 0.86), transparent 58% 100%);
+  pointer-events: none;
+  -webkit-mask:
+    linear-gradient(#000 0 0) content-box,
+    linear-gradient(#000 0 0);
+  -webkit-mask-composite: xor;
+  mask-composite: exclude;
+  animation: border-beam 3.8s linear infinite;
 }
 
 .cosmic-button.outline:hover,
 .cosmic-button.solid:hover {
-  border-color: transparent;
+  border-color: rgba(245, 245, 245, 0.62);
   color: var(--cosmic-text);
   background:
-    linear-gradient(var(--cosmic-bg), var(--cosmic-bg)) padding-box,
+    linear-gradient(rgba(5, 5, 5, 0.84), rgba(5, 5, 5, 0.84)) padding-box,
     var(--cosmic-gradient) border-box;
-  border: 2px solid transparent;
+}
+
+.cosmic-button.primary:hover {
+  color: #090605;
+  border-color: rgba(255, 252, 231, 0.76);
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    0 18px 42px rgba(0, 0, 0, 0.38),
+    0 0 42px rgba(216, 184, 108, 0.3);
 }
 
 .scroll-cue {
@@ -771,6 +834,10 @@ onBeforeUnmount(() => {
 .cosmic-section h2,
 .exploration-center h2 {
   font-size: clamp(48px, 8vw, 104px);
+  color: #fbf6e9;
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.12),
+    0 0 24px rgba(215, 180, 106, 0.08);
 }
 
 .cosmic-section-head p:last-child,
@@ -791,11 +858,14 @@ onBeforeUnmount(() => {
   grid-column: span 5;
   min-height: 420px;
   overflow: hidden;
-  border: 1px solid var(--cosmic-stroke);
-  border-radius: 32px;
+  border: 1px solid rgba(229, 205, 151, 0.16);
+  border-radius: 8px;
   background: var(--cosmic-surface);
   transform-origin: center;
   will-change: transform;
+  box-shadow:
+    0 24px 64px rgba(0, 0, 0, 0.28),
+    inset 0 1px 0 rgba(255, 255, 255, 0.04);
 }
 
 .bento-card.wide {
@@ -808,21 +878,29 @@ onBeforeUnmount(() => {
   min-height: 420px;
   object-fit: cover;
   display: block;
-  transition: transform 500ms ease;
+  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform;
 }
 
 .bento-card:hover img {
-  transform: scale(1.05);
+  transform: scale(1.065);
 }
 
 .bento-card::after {
   content: "";
   position: absolute;
   inset: 0;
+  z-index: 1;
+  pointer-events: none;
   background-image: radial-gradient(circle, #000 1px, transparent 1px);
   background-size: 4px 4px;
-  opacity: 0.2;
+  opacity: 0.12;
   mix-blend-mode: multiply;
+  transition: opacity 0.5s ease;
+}
+
+.bento-card:hover::after {
+  opacity: 0;
 }
 
 .bento-overlay {
@@ -832,13 +910,13 @@ onBeforeUnmount(() => {
   display: grid;
   place-items: center;
   opacity: 0;
-  background: rgba(10, 10, 10, 0.7);
-  backdrop-filter: blur(18px);
-  transition: opacity 260ms ease;
+  background: transparent;
+  pointer-events: none;
+  transition: opacity 0.5s ease;
 }
 
 .bento-card:hover .bento-overlay {
-  opacity: 1;
+  opacity: 0;
 }
 
 .bento-overlay span {
@@ -874,6 +952,10 @@ onBeforeUnmount(() => {
 .bento-caption h3 {
   margin: 0;
   font-size: clamp(26px, 4vw, 48px);
+  text-shadow:
+    0 0 12px rgba(255, 255, 255, 0.12),
+    0 0 24px rgba(215, 180, 106, 0.1),
+    0 8px 26px rgba(0, 0, 0, 0.48);
 }
 
 .journal-list {
@@ -886,9 +968,9 @@ onBeforeUnmount(() => {
   align-items: center;
   gap: 24px;
   padding: 18px 22px;
-  border: 1px solid var(--cosmic-stroke);
+  border: 1px solid rgba(229, 205, 151, 0.15);
   border-radius: 999px;
-  background: rgba(20, 20, 20, 0.3);
+  background: rgba(20, 10, 9, 0.34);
   transition: background 180ms ease, border-color 180ms ease;
   transform-origin: center;
   will-change: transform;
@@ -896,7 +978,7 @@ onBeforeUnmount(() => {
 
 .journal-pill:hover {
   background: var(--cosmic-surface);
-  border-color: rgba(137, 170, 204, 0.42);
+  border-color: rgba(216, 184, 108, 0.38);
 }
 
 .journal-pill strong {
@@ -1121,6 +1203,10 @@ onBeforeUnmount(() => {
   to { transform: translateY(200%); }
 }
 
+@keyframes border-beam {
+  to { transform: rotate(1turn); }
+}
+
 @media (max-width: 860px) {
   .cosmic-hero {
     min-height: 100svh;
@@ -1269,12 +1355,14 @@ onBeforeUnmount(() => {
 @media (prefers-reduced-motion: reduce) {
   .slide-left,
   .slide-right,
-  .scroll-cue i::after {
+  .scroll-cue i::after,
+  .cosmic-button.primary::before {
     animation: none;
   }
 
   .cosmic-button,
   .bento-card img,
+  .bento-card::after,
   .journal-pill,
   .cosmic-section {
     transition-duration: 1ms;

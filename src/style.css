@@ -10,22 +10,23 @@
 
 :root {
   color-scheme: dark;
-  --bg: transparent;
-  --panel: rgba(255, 255, 255, 0.055);
-  --panel-strong: rgba(255, 255, 255, 0.105);
-  --line: rgba(255, 255, 255, 0.16);
-  --line-soft: rgba(255, 255, 255, 0.08);
-  --text: #f6f2ea;
-  --muted: rgba(246, 242, 234, 0.68);
-  --faint: rgba(246, 242, 234, 0.42);
-  --gold: #d7b46a;
-  --cyan: #9ed8df;
+  --bg: #0f1722;
+  --panel: rgba(255, 255, 255, 0.03);
+  --panel-strong: rgba(255, 255, 255, 0.07);
+  --line: rgba(255, 255, 255, 0.09);
+  --line-soft: rgba(255, 255, 255, 0.06);
+  --text: #f3efe7;
+  --muted: rgba(243, 239, 231, 0.68);
+  --faint: rgba(125, 140, 163, 0.72);
+  --gold: #d6b36a;
+  --secondary: #7d8ca3;
+  --cyan: #d6b36a;
   --green: #95bfa4;
   --rose: #d79a8d;
   --porcelain: #eaf4ff;
   --porcelain-blue: #145a9d;
   --porcelain-deep: #061d3a;
-  font-family: "ZQKNBCGPST", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
+  font-family: "Inter", "PingFang SC", "Microsoft YaHei", system-ui, sans-serif;
   background: var(--bg);
   color: var(--text);
 }
@@ -67,11 +68,8 @@ a {
   min-height: 100vh;
   overflow-x: hidden;
   background:
-    linear-gradient(180deg, rgba(1, 9, 20, 0.46), rgba(1, 12, 26, 0.64)),
-    radial-gradient(ellipse at 50% -10%, rgba(230, 244, 255, 0.34), transparent 34rem),
-    radial-gradient(ellipse at 10% 42%, rgba(20, 90, 157, 0.22), transparent 32rem),
-    radial-gradient(ellipse at 90% 58%, rgba(230, 244, 255, 0.16), transparent 30rem),
-    transparent;
+    radial-gradient(circle at top, rgba(214, 179, 106, 0.08), transparent 40%),
+    linear-gradient(to bottom, #0f1722, #111827);
 }
 
 .app-shell::before {
@@ -186,7 +184,7 @@ a {
   top: 18px;
   left: 50%;
   z-index: 50;
-  width: min(1180px, calc(100% - 32px));
+  width: min(1440px, calc(100% - 32px));
   margin: 0;
   padding: 9px 12px;
   display: grid;
@@ -1125,6 +1123,85 @@ a {
 .page-fade-leave-to {
   opacity: 0;
   transform: translateY(12px);
+}
+
+.app-shell::before {
+  background:
+    url("data:image/svg+xml,%3Csvg width='980' height='980' viewBox='0 0 980 980' xmlns='http://www.w3.org/2000/svg'%3E%3Cg fill='none' stroke='%23d6b36a' stroke-opacity='.12' stroke-width='1'%3E%3Cpath d='M490 72v836M404 164h172M374 298h232M340 490h300M374 682h232M404 816h172'/%3E%3Cpath d='M240 258c116 42 384 42 500 0M240 722c116-42 384-42 500 0'/%3E%3Cpath d='M284 178h412v624H284z'/%3E%3C/g%3E%3C/svg%3E"),
+    radial-gradient(circle at 24% 18%, rgba(214, 179, 106, 0.08), transparent 24rem),
+    radial-gradient(circle at 76% 34%, rgba(243, 239, 231, 0.045), transparent 28rem);
+  background-size: 980px 980px, auto, auto;
+  background-position: center -120px, center, center;
+  background-repeat: no-repeat;
+  opacity: 0.52;
+  mix-blend-mode: normal;
+}
+
+.app-shell::after {
+  background:
+    radial-gradient(circle at 50% 8%, rgba(255,255,255,.04) 0 1px, transparent 1px),
+    linear-gradient(180deg, rgba(15, 23, 34, 0), rgba(15, 23, 34, 0.36));
+  background-size: 28px 28px, auto;
+  opacity: 0.34;
+  mix-blend-mode: normal;
+}
+
+.liquid-scene {
+  display: none;
+}
+
+.site-header,
+.site-header.is-scrolled,
+.site-header:hover {
+  border: 1px solid rgba(255, 255, 255, 0.06);
+  border-radius: 999px;
+  background: rgba(18, 18, 18, 0.45);
+  box-shadow: none;
+  -webkit-backdrop-filter: blur(20px);
+  backdrop-filter: blur(20px);
+  transition: all 0.3s ease;
+}
+
+.site-header::before,
+.site-header::after {
+  opacity: 0;
+}
+
+.site-header:hover {
+  transform: translateX(-50%) translateY(-2px);
+}
+
+.pill-nav,
+.user-trigger,
+.site-header .mini-button {
+  border-color: rgba(255, 255, 255, 0.06);
+  background: rgba(255, 255, 255, 0.03);
+  box-shadow: none;
+}
+
+.pill-nav a:hover,
+.pill-nav a.router-link-active,
+.user-menu.open .user-trigger,
+.user-trigger:hover,
+.site-header .mini-button:hover {
+  border-color: rgba(214, 179, 106, 0.22);
+  background: rgba(214, 179, 106, 0.08);
+  box-shadow: none;
+  transform: translateY(-2px);
+}
+
+.brand-mark strong span,
+.pill-nav a.router-link-active,
+.ghost-link:hover {
+  color: var(--gold);
+  text-shadow: none;
+}
+
+.brand-emblem,
+.brand-mark:hover .brand-emblem {
+  box-shadow:
+    0 0 0 1px rgba(214, 179, 106, 0.2),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 }
 
 @media (max-width: 920px) {

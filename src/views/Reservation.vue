@@ -189,25 +189,29 @@ const submit = async () => {
         </el-form>
       </div>
 
-      <aside class="venue-preview" v-if="selectedVenue">
-        <div class="venue-image-stage">
-          <img :src="selectedVenue.image" :alt="selectedVenue.name" decoding="async" fetchpriority="high" />
-        </div>
+      <aside class="venue-preview" :class="{ 'palace-card': selectedVenue?.id === 'palace-museum' }" v-if="selectedVenue">
+        <Transition name="venue-theme" mode="out-in">
+          <div :key="selectedVenue.id" class="venue-preview-inner">
+            <div class="venue-image-stage">
+              <img :src="selectedVenue.image" :alt="selectedVenue.name" decoding="async" fetchpriority="high" />
+            </div>
 
-        <div class="venue-preview-copy">
-          <span>{{ selectedVenue.type }}</span>
-          <h2>{{ selectedVenue.name }}</h2>
-          <p>{{ selectedVenue.intro }}</p>
-          <div class="hint-grid">
-            <article v-for="hint in routeHints" :key="hint.label">
-              <strong>{{ hint.value }}</strong>
-              <span>{{ hint.label }}</span>
-            </article>
+            <div class="venue-preview-copy">
+              <span>{{ selectedVenue.type }}</span>
+              <h2>{{ selectedVenue.name }}</h2>
+              <p>{{ selectedVenue.intro }}</p>
+              <div class="hint-grid">
+                <article v-for="hint in routeHints" :key="hint.label">
+                  <strong>{{ hint.value }}</strong>
+                  <span>{{ hint.label }}</span>
+                </article>
+              </div>
+              <div class="tag-row">
+                <span v-for="tag in selectedVenue.tags" :key="tag">{{ tag }}</span>
+              </div>
+            </div>
           </div>
-          <div class="tag-row">
-            <span v-for="tag in selectedVenue.tags" :key="tag">{{ tag }}</span>
-          </div>
-        </div>
+        </Transition>
       </aside>
     </section>
 
@@ -245,6 +249,8 @@ const submit = async () => {
   --cosmic-text: #f5f5f5;
   --cosmic-muted: #8f8f8f;
   --cosmic-stroke: #202020;
+  --imperial-cinnabar: #8d2522;
+  --aged-gold: #bfa276;
   position: relative;
   width: min(1220px, calc(100% - 32px));
   margin: 0 auto;
@@ -311,6 +317,10 @@ const submit = async () => {
     radial-gradient(circle at 28% 12%, var(--reservation-accent-soft), transparent 16rem),
     linear-gradient(145deg, var(--reservation-surface), rgba(20, 20, 20, 0.78));
   box-shadow: 0 20px 56px rgba(0, 0, 0, 0.3), 0 0 24px var(--reservation-glow);
+  transition:
+    border-color 0.46s cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 0.46s cubic-bezier(0.25, 1, 0.5, 1),
+    background 0.46s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .reservation-signal span {
@@ -348,14 +358,112 @@ const submit = async () => {
     rgba(20, 20, 20, 0.72);
 }
 
+.reservation-form :deep(.el-form-item) {
+  margin-bottom: 24px;
+}
+
+.reservation-form :deep(.el-form-item:last-child) {
+  margin-bottom: 0;
+}
+
 .reservation-form :deep(.el-form-item__label) {
+  margin-bottom: 9px;
   color: var(--cosmic-muted) !important;
+  line-height: 1.2;
+}
+
+.reservation-form :deep(.el-form-item.is-required:not(.is-no-asterisk).asterisk-left > .el-form-item__label::before),
+.reservation-form :deep(.el-form-item.is-required:not(.is-no-asterisk).asterisk-right > .el-form-item__label::after) {
+  color: var(--imperial-cinnabar);
+}
+
+.reservation-form :deep(.el-input__wrapper),
+.reservation-form :deep(.el-select__wrapper) {
+  min-height: 44px;
+  border: 1px solid rgba(255, 255, 255, 0.07);
+  border-radius: 13px;
+  background:
+    linear-gradient(145deg, rgba(255, 255, 255, 0.055), rgba(255, 255, 255, 0.022)),
+    rgba(10, 10, 10, 0.42);
+  box-shadow: none !important;
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.reservation-form :deep(.el-input__wrapper:hover),
+.reservation-form :deep(.el-select__wrapper:hover) {
+  border-color: rgba(191, 162, 118, 0.42);
+  box-shadow: 0 0 0 rgba(191, 162, 118, 0);
+}
+
+.reservation-form :deep(.el-input__wrapper.is-focus),
+.reservation-form :deep(.el-input__wrapper:focus-within),
+.reservation-form :deep(.el-select__wrapper.is-focused),
+.reservation-form :deep(.el-select__wrapper:focus-within),
+.reservation-form :deep(.el-select__wrapper.is-hovering),
+.reservation-form :deep(.el-date-editor.el-input__wrapper.is-focus),
+.reservation-form :deep(.el-date-editor.el-input__wrapper:focus-within) {
+  border-color: rgba(191, 162, 118, 0.8);
+  box-shadow: 0 0 8px rgba(191, 162, 118, 0.2) !important;
+}
+
+.reservation-form :deep(.el-input__inner),
+.reservation-form :deep(.el-select__placeholder),
+.reservation-form :deep(.el-input-number .el-input__inner) {
+  color: var(--cosmic-text);
+}
+
+.reservation-form :deep(.el-input__inner::placeholder) {
+  color: rgba(245, 245, 245, 0.34);
+}
+
+.reservation-form :deep(.el-select__wrapper) {
+  position: relative;
+  padding-right: 42px;
+}
+
+.reservation-form :deep(.el-select__suffix) {
+  opacity: 0;
+}
+
+.reservation-form :deep(.el-select__wrapper::after) {
+  content: "";
+  position: absolute;
+  top: 50%;
+  right: 15px;
+  width: 17px;
+  height: 17px;
+  pointer-events: none;
+  background: color-mix(in srgb, var(--reservation-accent) 68%, var(--aged-gold));
+  mask: url("data:image/svg+xml,%3Csvg width='18' height='18' viewBox='0 0 18 18' xmlns='http://www.w3.org/2000/svg'%3E%3Cpath d='M3.2 6.4h3.1c1.3 0 1.8.8 2.7 2.1.9-1.3 1.4-2.1 2.7-2.1h3.1M5.4 10.4l3.6 2.7 3.6-2.7' fill='none' stroke='black' stroke-width='1.45' stroke-linecap='round' stroke-linejoin='round'/%3E%3C/svg%3E") center / contain no-repeat;
+  transform: translateY(-50%);
+  opacity: 0.76;
+  transition: transform 0.3s cubic-bezier(0.25, 1, 0.5, 1), opacity 0.3s ease, background 0.3s ease;
+}
+
+.reservation-form :deep(.el-select__wrapper.is-focused::after),
+.reservation-form :deep(.el-select__wrapper:focus-within::after) {
+  transform: translateY(-50%) rotate(180deg);
+  opacity: 1;
+}
+
+.reservation-form :deep(.el-input-number__decrease),
+.reservation-form :deep(.el-input-number__increase) {
+  border-color: rgba(255, 255, 255, 0.08);
+  background: rgba(255, 255, 255, 0.035);
+  color: var(--cosmic-muted);
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.reservation-form :deep(.el-input-number__decrease:hover),
+.reservation-form :deep(.el-input-number__increase:hover) {
+  color: var(--aged-gold);
 }
 
 .reservation-form :deep(.el-radio-button__inner) {
   border-color: var(--cosmic-stroke);
   background: rgba(255, 255, 255, 0.04);
   color: var(--cosmic-muted);
+  transition: all 0.3s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .reservation-form :deep(.el-radio-button__original-radio:checked + .el-radio-button__inner) {
@@ -378,7 +486,25 @@ const submit = async () => {
   background:
     radial-gradient(circle at 20% 12%, var(--reservation-accent-soft), transparent 18rem),
     linear-gradient(145deg, var(--reservation-surface), rgba(20, 20, 20, 0.78));
-  box-shadow: 0 28px 78px rgba(0, 0, 0, 0.34), 0 0 34px var(--reservation-glow);
+  box-shadow:
+    0 28px 78px rgba(0, 0, 0, 0.34),
+    0 0 28px color-mix(in srgb, var(--reservation-glow) 74%, transparent),
+    inset 0 1px 1px rgba(255, 255, 255, 0.05);
+  transition:
+    border-color 0.46s cubic-bezier(0.25, 1, 0.5, 1),
+    box-shadow 0.46s cubic-bezier(0.25, 1, 0.5, 1),
+    background 0.46s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.venue-preview.palace-card {
+  box-shadow:
+    0 8px 32px rgba(141, 37, 34, 0.2),
+    0 28px 78px rgba(0, 0, 0, 0.34),
+    inset 0 1px 1px rgba(255, 255, 255, 0.05);
+}
+
+.venue-preview-inner {
+  min-height: 100%;
 }
 
 .venue-image-stage {
@@ -388,6 +514,9 @@ const submit = async () => {
   overflow: hidden;
   border-bottom: 1px solid color-mix(in srgb, var(--reservation-accent) 24%, var(--cosmic-stroke));
   background: rgba(10, 10, 10, 0.34);
+  transition:
+    border-color 0.46s cubic-bezier(0.25, 1, 0.5, 1),
+    background 0.46s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .venue-image-stage img {
@@ -407,6 +536,7 @@ const submit = async () => {
 .ticket-preview > div > span {
   color: var(--reservation-accent);
   font-size: 14px;
+  transition: color 0.46s cubic-bezier(0.25, 1, 0.5, 1);
 }
 
 .venue-preview h2,
@@ -466,6 +596,19 @@ const submit = async () => {
   border: 1px solid color-mix(in srgb, var(--reservation-accent) 28%, transparent);
   border-radius: 999px;
   background: rgba(255, 255, 255, 0.035);
+  transition: border-color 0.46s cubic-bezier(0.25, 1, 0.5, 1), color 0.46s cubic-bezier(0.25, 1, 0.5, 1);
+}
+
+.venue-theme-enter-active,
+.venue-theme-leave-active {
+  transition: opacity 0.32s cubic-bezier(0.25, 1, 0.5, 1), transform 0.32s cubic-bezier(0.25, 1, 0.5, 1), filter 0.32s ease;
+}
+
+.venue-theme-enter-from,
+.venue-theme-leave-to {
+  opacity: 0;
+  filter: saturate(0.9) brightness(0.86);
+  transform: translateY(8px);
 }
 
 .planning-panel {

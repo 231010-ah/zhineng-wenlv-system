@@ -7,10 +7,33 @@ import { getExhibitions, getVenues } from '../api/tourism'
 gsap.registerPlugin(ScrollTrigger)
 
 const pageRef = ref(null)
+const filterRef = ref(null)
+const filterIndicatorStyle = ref({
+  width: '0px',
+  height: '0px',
+  transform: 'translate3d(0, 0, 0)',
+  opacity: 0
+})
 const exhibitions = ref([])
 const venues = ref([])
 const activeVenue = ref('all')
+const filterTabRefs = new Map()
 let cleanupMotion
+
+const venueAmbientGlow = {
+  'palace-museum': {
+    base: 'rgba(141, 37, 34, 0.08)',
+    hover: 'rgba(141, 37, 34, 0.16)'
+  },
+  'temple-of-heaven': {
+    base: 'rgba(26, 85, 153, 0.08)',
+    hover: 'rgba(26, 85, 153, 0.16)'
+  },
+  'summer-palace': {
+    base: 'rgba(46, 125, 50, 0.06)',
+    hover: 'rgba(46, 125, 50, 0.13)'
+  }
+}
 
 const filtered = computed(() => {
   if (activeVenue.value === 'all') return exhibitions.value
@@ -24,8 +47,35 @@ const exhibitionThemeStyle = (item) => ({
   '--exhibit-accent': item.theme?.accent || 'var(--cyan)',
   '--exhibit-accent-soft': item.theme?.accentSoft || 'rgba(158, 216, 223, 0.24)',
   '--exhibit-glow': item.theme?.glow || 'rgba(158, 216, 223, 0.18)',
-  '--exhibit-surface': item.theme?.surface || '#111'
+  '--exhibit-surface': item.theme?.surface || '#111',
+  '--venue-ambient-glow': venueAmbientGlow[item.venueId]?.base || 'rgba(158, 216, 223, 0.07)',
+  '--venue-ambient-glow-hover': venueAmbientGlow[item.venueId]?.hover || 'rgba(158, 216, 223, 0.14)'
 })
+
+const setFilterTabRef = (id, element) => {
+  if (element) {
+    filterTabRefs.set(id, element)
+  } else {
+    filterTabRefs.delete(id)
+  }
+}
+
+const updateFilterIndicator = () => {
+  const row = filterRef.value
+  const activeTab = filterTabRefs.get(activeVenue.value)
+
+  if (!row || !activeTab) return
+
+  const rowRect = row.getBoundingClientRect()
+  const tabRect = activeTab.getBoundingClientRect()
+
+  filterIndicatorStyle.value = {
+    width: `${tabRect.width}px`,
+    height: `${tabRect.height}px`,
+    transform: `translate3d(${tabRect.left - rowRect.left}px, ${tabRect.top - rowRect.top}px, 0)`,
+    opacity: 1
+  }
+}
 
 const preloadDetailImage = (item) => {
   const imageUrl = item.featuredObject?.image
@@ -108,21 +158,29 @@ const initMotion = () => {
 }
 
 onMounted(async () => {
+  await nextTick()
+  updateFilterIndicator()
+
   const [exhibitionData, venueData] = await Promise.all([getExhibitions(), getVenues()])
   exhibitions.value = exhibitionData
   venues.value = venueData
   await nextTick()
+  updateFilterIndicator()
+  document.fonts?.ready.then(updateFilterIndicator)
+  window.addEventListener('resize', updateFilterIndicator)
   initMotion()
   ScrollTrigger.refresh()
 })
 
 watch(activeVenue, async () => {
   await nextTick()
+  updateFilterIndicator()
   animateFilteredCards()
   ScrollTrigger.refresh()
 })
 
 onUnmounted(() => {
+  window.removeEventListener('resize', updateFilterIndicator)
   cleanupMotion?.()
 })
 </script>
@@ -137,9 +195,17 @@ onUnmounted(() => {
       </div>
     </section>
 
-    <div class="filter-row" data-reveal>
-      <button class="mini-button" :class="{ active: activeVenue === 'all' }" type="button" @click="activeVenue = 'all'">全部</button>
-      <button v-for="venue in venues" :key="venue.id" class="mini-button dark-button" :class="{ active: activeVenue === venue.id }" @click="activeVenue = venue.id">
+    <div ref="filterRef" class="filter-row" data-reveal>
+      <span class="filter-indicator" :style="filterIndicatorStyle" aria-hidden="true"></span>
+      <button :ref="(el) => setFilterTabRef('all', el)" class="mini-button filter-tab" :class="{ active: activeVenue === 'all' }" type="button" @click="activeVenue = 'all'">全部</button>
+      <button
+        v-for="venue in venues"
+        :key="venue.id"
+        :ref="(el) => setFilterTabRef(venue.id, el)"
+        class="mini-button dark-button filter-tab"
+        :class="{ active: activeVenue === venue.id }"
+        @click="activeVenue = venue.id"
+      >
         {{ venue.name }}
       </button>
     </div>
@@ -164,7 +230,7 @@ onUnmounted(() => {
           <h2>{{ item.title }}</h2>
           <p>{{ item.summary }}</p>
           <small>{{ item.date }}</small>
-          <strong class="detail-entry">查看特色物品 <span aria-hidden="true">→</span></strong>
+          <strong class="detail-entry">查看特色物品 <span class="cta-arrow" aria-hidden="true">→</span></strong>
         </div>
       </router-link>
     </section>
@@ -173,8 +239,14 @@ onUnmounted(() => {
 
 <style scoped>
 .exhibitions-page {
+  position: relative;
   width: min(1180px, calc(100% - 32px));
   padding-top: 126px;
+}
+
+:global(.app-shell:has(.exhibitions-page)::before),
+:global(.app-shell:has(.exhibitions-page)::after) {
+  opacity: 0.15;
 }
 
 .exhibition-hero {
@@ -197,15 +269,61 @@ onUnmounted(() => {
 }
 
 .filter-row {
+  position: relative;
   display: flex;
   gap: 10px;
   flex-wrap: wrap;
+  width: fit-content;
+  max-width: 100%;
+  padding: 5px;
   margin-bottom: 20px;
+  border: 1px solid rgba(234, 244, 255, 0.12);
+  border-radius: 999px;
+  background: rgba(4, 12, 24, 0.32);
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.08),
+    0 18px 48px rgba(0, 0, 0, 0.18);
+  -webkit-backdrop-filter: blur(12px) saturate(125%);
+  backdrop-filter: blur(12px) saturate(125%);
+}
+
+.filter-indicator {
+  position: absolute;
+  left: 0;
+  top: 0;
+  z-index: 0;
+  border-radius: 999px;
+  background: var(--text);
+  box-shadow:
+    0 10px 26px rgba(246, 242, 234, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.62);
+  pointer-events: none;
+  transition: all 0.4s cubic-bezier(0.25, 1, 0.5, 1);
+  will-change: width, height, transform;
+}
+
+.filter-tab {
+  position: relative;
+  z-index: 1;
+  min-height: 36px;
+  border-color: transparent;
+  background: transparent;
+  color: rgba(246, 242, 234, 0.76);
+  box-shadow: none;
+  transform: none;
+  transition: color 220ms ease, text-shadow 220ms ease;
+}
+
+.filter-tab:hover {
+  color: var(--text);
+  box-shadow: none;
+  transform: none;
 }
 
 .filter-row .active {
-  background: var(--text);
+  background: transparent;
   color: #050505;
+  text-shadow: none;
 }
 
 .exhibition-grid {
@@ -220,17 +338,61 @@ onUnmounted(() => {
   color: inherit;
   cursor: pointer;
   will-change: transform;
+  border-radius: 28px;
   border-color: color-mix(in srgb, var(--exhibit-accent) 34%, transparent);
   background:
-    radial-gradient(circle at 22% 18%, var(--exhibit-accent-soft), transparent 18rem),
-    radial-gradient(circle at 88% 8%, var(--exhibit-glow), transparent 16rem),
-    linear-gradient(145deg, color-mix(in srgb, var(--exhibit-surface) 82%, transparent), rgba(8, 8, 8, 0.72));
+    radial-gradient(circle at 22% 18%, color-mix(in srgb, var(--exhibit-accent-soft) 78%, transparent), transparent 18rem),
+    radial-gradient(circle at 88% 8%, var(--venue-ambient-glow), transparent 17rem),
+    linear-gradient(145deg, color-mix(in srgb, var(--exhibit-surface) 84%, rgba(255, 255, 255, 0.02)), rgba(10, 10, 10, 0.74));
+  box-shadow:
+    0 20px 64px rgba(0, 0, 0, 0.32),
+    0 4px 30px var(--venue-ambient-glow),
+    inset 0 1px 0 rgba(255, 255, 255, 0.13);
+  -webkit-backdrop-filter: blur(4px) saturate(118%);
+  backdrop-filter: blur(4px) saturate(118%);
+  transform: translate3d(0, 0, 0);
+  backface-visibility: hidden;
+  contain: paint;
 }
 
 .exhibition-card:hover {
-  border-color: color-mix(in srgb, var(--exhibit-accent) 62%, rgba(255, 255, 255, 0.24));
-  box-shadow: 0 28px 78px rgba(0, 0, 0, 0.42), 0 0 34px var(--exhibit-glow);
-  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--exhibit-accent) 38%, rgba(255, 255, 255, 0.14));
+  box-shadow:
+    0 24px 62px rgba(0, 0, 0, 0.38),
+    inset 0 1px 0 rgba(255, 255, 255, 0.18);
+  transform: translate3d(0, -3px, 0);
+}
+
+.exhibition-card::before,
+.exhibition-card::after {
+  border-radius: inherit;
+  transition: opacity 420ms ease, transform 520ms cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+.exhibition-card::before {
+  opacity: 0.28;
+  transform: rotate(-13deg) scale(0.98);
+}
+
+.exhibition-card::after {
+  inset: 1px;
+  z-index: 1;
+  border-radius: 27px;
+  background:
+    radial-gradient(circle at 18% 18%, color-mix(in srgb, var(--exhibit-accent) 12%, transparent), transparent 12rem),
+    radial-gradient(circle at 88% 10%, var(--venue-ambient-glow-hover), transparent 14rem),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.036), transparent 34%, rgba(255, 255, 255, 0.025));
+  mix-blend-mode: normal;
+  opacity: 0.2;
+}
+
+.exhibition-card:hover::before {
+  opacity: 0.32;
+  transform: rotate(-13deg) scale(0.98);
+}
+
+.exhibition-card:hover::after {
+  opacity: 0.34;
 }
 
 .exhibition-card:hover img {
@@ -239,7 +401,10 @@ onUnmounted(() => {
 
 .exhibition-card,
 .exhibition-card img {
-  transition: transform 260ms ease, border-color 220ms ease, box-shadow 220ms ease;
+  transition:
+    transform 520ms cubic-bezier(0.16, 1, 0.3, 1),
+    border-color 320ms ease,
+    box-shadow 420ms ease;
 }
 
 .exhibition-card .image-frame {
@@ -256,6 +421,8 @@ onUnmounted(() => {
 }
 
 .exhibition-card > div:not(.image-frame) {
+  position: relative;
+  z-index: 2;
   padding: 20px;
 }
 
@@ -284,14 +451,23 @@ onUnmounted(() => {
   margin-top: 14px;
   color: var(--exhibit-accent);
   font-size: 14px;
+  transition: color 300ms ease, text-shadow 300ms ease;
 }
 
-.detail-entry span {
-  transition: transform 180ms ease;
+.detail-entry .cta-arrow {
+  display: inline-block;
+  color: inherit;
+  transition: transform 0.3s ease;
+  will-change: transform;
 }
 
-.exhibition-card:hover .detail-entry span {
-  transform: translateX(4px);
+.exhibition-card:hover .detail-entry {
+  color: color-mix(in srgb, var(--exhibit-accent) 72%, #ffffff);
+  text-shadow: 0 0 18px color-mix(in srgb, var(--exhibit-accent) 34%, transparent);
+}
+
+.exhibition-card:hover .detail-entry .cta-arrow {
+  transform: translateX(5px);
 }
 
 @media (max-width: 880px) {

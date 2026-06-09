@@ -16,7 +16,7 @@ const navItems = [
   { label: '展览', to: '/exhibitions' },
   { label: '预约建议', to: '/reservation' },
   { label: '客流', to: '/traffic' },
-  { label: '兴趣推荐', to: '/recommendations' },
+  { label: '路线', to: '/recommendations' },
   { label: '门票', to: '/tickets' }
 ]
 

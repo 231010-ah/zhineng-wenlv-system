@@ -13,7 +13,7 @@ const routes = [
   { path: '/records', name: 'records', component: () => import('../views/Records.vue'), meta: { title: '预约记录', requiresAuth: true } },
   { path: '/reviews', name: 'reviews', component: () => import('../views/Reviews.vue'), meta: { title: '用户评价', requiresAuth: true } },
   { path: '/traffic', name: 'traffic', component: () => import('../views/Traffic.vue'), meta: { title: 'AI 客流提示' } },
-  { path: '/recommendations', name: 'recommendations', component: () => import('../views/Recommendations.vue'), meta: { title: 'AI 兴趣推荐' } },
+  { path: '/recommendations', name: 'recommendations', component: () => import('../views/Recommendations.vue'), meta: { title: '中轴线路线' } },
   { path: '/:pathMatch(.*)*', redirect: '/' }
 ]
 
@@ -27,7 +27,7 @@ const router = createRouter({
 
 router.beforeEach((to) => {
   const auth = useAuthStore()
-  document.title = `${to.meta.title || '北京文旅'} - 北京文旅智能推荐助手`
+  document.title = `${to.meta.title || '北京文旅'} - 京脉文旅`
 
   if (to.meta.requiresAuth && !auth.isAuthenticated) {
     return { name: 'login', query: { redirect: to.fullPath } }
