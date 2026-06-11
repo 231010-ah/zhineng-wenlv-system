@@ -3,13 +3,17 @@ import { computed, nextTick, onBeforeUnmount, onMounted, ref } from 'vue'
 import gsap from 'gsap'
 import { ScrollTrigger } from 'gsap/ScrollTrigger'
 import { getRecommendations, getTrafficTips, getVenues } from '../api/tourism'
+import IntroPreloader from '../components/IntroPreloader.vue'
+import { splitTextIntoChars, splitTextIntoLines } from '../utils/textSplitter'
 
 gsap.registerPlugin(ScrollTrigger)
 
 const homeRoot = ref(null)
 const venues = ref([])
+const venueVisuals = ref([])
 const traffic = ref(null)
 const recommendations = ref([])
+const introPlaying = ref(true)
 const animatedStats = ref({
   crowd: 0,
   recommendations: 0
@@ -50,6 +54,13 @@ const trafficMetrics = computed(() => {
     value: series.reduce((peak, item) => Math.max(peak, item[group.key] || 0), 0)
   }))
 })
+
+const introVisualItems = computed(() => venueVisuals.value.map((venue) => ({
+  id: venue.id,
+  name: venue.name,
+  type: venue.type,
+  image: venue.image
+})))
 
 let animationContext
 let mediaContext
@@ -133,6 +144,16 @@ const setupMotion = () => {
       duration: 0.8
     })
 
+    // Perform text splitting reveals
+    const titleEl = q('.cosmic-title')[0]
+    if (titleEl) splitTextIntoChars(titleEl)
+
+    const eyebrowEl = q('.cosmic-eyebrow')[0]
+    if (eyebrowEl) splitTextIntoLines(eyebrowEl)
+
+    const copyEl = q('.cosmic-copy')[0]
+    if (copyEl) splitTextIntoLines(copyEl)
+
     gsap.set(q('.reveal-item'), {
       autoAlpha: 0,
       y: 42,
@@ -142,6 +163,10 @@ const setupMotion = () => {
       scaleX: 0,
       transformOrigin: 'left center'
     })
+    gsap.set(q('.cosmic-title .split-char-inner'), { y: '100%' })
+    gsap.set(q('.cosmic-eyebrow .split-line-inner, .cosmic-copy .split-line-inner'), { y: '100%' })
+    gsap.set(q('.reveal-role-wrapper .cosmic-role'), { y: '100%' })
+    gsap.set(q('.cosmic-actions .cosmic-button'), { autoAlpha: 0, y: 15 })
 
     mediaContext = gsap.matchMedia()
     mediaContext.add(
@@ -158,15 +183,65 @@ const setupMotion = () => {
             ease: 'power3.out'
           }
         })
-          .from(q('.cosmic-backdrop'), { autoAlpha: 0, scale: 1.04, duration: 1.2 })
-          .from(q('.cosmic-slider-top'), { autoAlpha: 0, y: isMobile ? -14 : -36, rotation: -8 }, '<0.05')
-          .from(q('.cosmic-slider-bottom'), { autoAlpha: 0, y: isMobile ? 14 : 36, rotation: 7 }, '<0.05')
-          .from(q('.cosmic-eyebrow, .cosmic-title, .cosmic-role, .cosmic-copy, .cosmic-actions'), {
-            autoAlpha: 0,
-            y: (index) => [12, 32, 18, 14, 12][index] || 14,
-            stagger: 0.08
-          }, '<0.18')
-          .from(q('.scroll-cue'), { autoAlpha: 0, y: -8, duration: 0.5 }, '-=0.24')
+          .fromTo(q('.cosmic-backdrop'), { autoAlpha: 0, scale: 1.04 }, { autoAlpha: 1, scale: 1, duration: 1.2 })
+          // Animate cards and internal images (container up + inner image down)
+          .fromTo(q('.cosmic-slider-top .cosmic-slide-card'), { 
+            autoAlpha: 0, 
+            y: 40 
+          }, { 
+            autoAlpha: 1, 
+            y: 0, 
+            stagger: 0.05, 
+            duration: 0.95 
+          }, '<0.05')
+          .fromTo(q('.cosmic-slider-top .cosmic-slide-card img'), { 
+            scale: 1.22 
+          }, { 
+            scale: 1.03, 
+            duration: 1.1, 
+            ease: 'power2.out' 
+          }, '<')
+          .fromTo(q('.cosmic-slider-bottom .cosmic-slide-chip'), { 
+            autoAlpha: 0, 
+            y: 20 
+          }, { 
+            autoAlpha: 0.38, 
+            y: 0, 
+            stagger: 0.04, 
+            duration: 0.8 
+          }, '<0.05')
+          
+          // Animate texts in sequence
+          .to(q('.cosmic-eyebrow .split-line-inner'), {
+            y: '0%',
+            duration: 0.8,
+            ease: 'power3.out'
+          }, '<0.15')
+          .to(q('.cosmic-title .split-char-inner'), {
+            y: '0%',
+            duration: 0.9,
+            stagger: 0.04,
+            ease: 'power4.out'
+          }, '<0.05')
+          .to(q('.reveal-role-wrapper .cosmic-role'), {
+            y: '0%',
+            duration: 0.8,
+            ease: 'power3.out'
+          }, '<0.25')
+          .to(q('.cosmic-copy .split-line-inner'), {
+            y: '0%',
+            duration: 0.8,
+            stagger: 0.08,
+            ease: 'power3.out'
+          }, '<0.08')
+          .to(q('.cosmic-actions .cosmic-button'), {
+            autoAlpha: 1,
+            y: 0,
+            stagger: 0.1,
+            duration: 0.6,
+            ease: 'power2.out'
+          }, '<0.15')
+          .from(q('.scroll-cue'), { autoAlpha: 0, y: -8, duration: 0.5 }, '-=0.15')
 
         ScrollTrigger.batch(q('.reveal-item'), {
           start: 'top 84%',
@@ -181,6 +256,19 @@ const setupMotion = () => {
               duration: isMobile ? 0.62 : 0.78,
               stagger: 0.08,
               overwrite: true
+            })
+            batch.forEach((el) => {
+              const img = el.querySelector('img')
+              if (img) {
+                gsap.fromTo(img, {
+                  scale: 1.2
+                }, {
+                  scale: 1.03,
+                  duration: 0.95,
+                  ease: 'power2.out',
+                  overwrite: 'auto'
+                })
+              }
             })
           }
         })
@@ -306,7 +394,7 @@ const setupMotion = () => {
       ease: 'power2.out'
     })
 
-    bindHoverMotion('.bento-card, .journal-pill, .stats-grid article, .insight-bar', {
+    bindHoverMotion('.cosmic-gallery-card, .journal-pill, .stats-grid article, .insight-bar', {
       y: -6,
       scale: 1.012,
       duration: 0.24,
@@ -320,6 +408,131 @@ const setupMotion = () => {
   }, homeRoot.value)
 }
 
+const galleryOuter = ref(null)
+const galleryTrack = ref(null)
+const galleryCursor = ref(null)
+const isCursorActive = ref(false)
+const isDragging = ref(false)
+
+let startX = 0
+let startTranslate = 0
+let targetTranslate = 0
+let currentTranslate = 0
+let maxScroll = 0
+let animationFrameId = null
+
+const cursorPosition = { x: 0, y: 0 }
+const cursorTarget = { x: 0, y: 0 }
+let cursorAngle = 0
+let cursorScaleX = 1
+let cursorScaleY = 1
+
+const updatePhysics = () => {
+  currentTranslate += (targetTranslate - currentTranslate) * 0.08
+  const velocity = targetTranslate - currentTranslate
+
+  if (galleryTrack.value) {
+    galleryTrack.value.style.transform = `translate3d(${currentTranslate}px, 0, 0)`
+
+    const skew = Math.min(Math.max(velocity * 0.04, -8), 8)
+    const cards = galleryTrack.value.querySelectorAll('.cosmic-gallery-card')
+    cards.forEach((card) => {
+      card.style.transform = `skewX(${skew}deg)`
+
+      const rect = card.getBoundingClientRect()
+      const outerRect = galleryOuter.value ? galleryOuter.value.getBoundingClientRect() : { left: 0, width: window.innerWidth }
+      const outerCenter = outerRect.left + outerRect.width / 2
+      const cardCenter = rect.left + rect.width / 2
+      const relativeRatio = (cardCenter - outerCenter) / window.innerWidth
+      
+      const img = card.querySelector('.gallery-card-img')
+      if (img) {
+        const imgShift = relativeRatio * -70
+        img.style.transform = `scale(1.18) translate3d(${imgShift}px, 0, 0)`
+      }
+    })
+  }
+
+  cursorPosition.x += (cursorTarget.x - cursorPosition.x) * 0.15
+  cursorPosition.y += (cursorTarget.y - cursorPosition.y) * 0.15
+
+  const dx = cursorTarget.x - cursorPosition.x
+  const dy = cursorTarget.y - cursorPosition.y
+  const speed = Math.sqrt(dx * dx + dy * dy)
+  
+  cursorAngle = Math.atan2(dy, dx) * (180 / Math.PI)
+  const stretch = Math.min(speed * 0.008, 0.45)
+  cursorScaleX = 1 + stretch
+  cursorScaleY = 1 - stretch
+
+  if (galleryCursor.value) {
+    galleryCursor.value.style.transform = `translate3d(${cursorPosition.x}px, ${cursorPosition.y}px, 0) rotate(${cursorAngle}deg) scale(${cursorScaleX}, ${cursorScaleY})`
+  }
+
+  animationFrameId = requestAnimationFrame(updatePhysics)
+}
+
+const onDragStart = (event) => {
+  isDragging.value = true
+  startX = event.type.includes('touch') ? event.touches[0].clientX : event.clientX
+  startTranslate = targetTranslate
+  
+  window.addEventListener('mousemove', onDragMove)
+  window.addEventListener('mouseup', onDragEnd)
+  window.addEventListener('touchmove', onDragMove, { passive: false })
+  window.addEventListener('touchend', onDragEnd)
+}
+
+const onDragMove = (event) => {
+  if (!isDragging.value) return
+  if (event.cancelable) event.preventDefault()
+
+  const currentMouseX = event.type.includes('touch') ? event.touches[0].clientX : event.clientX
+  const deltaX = currentMouseX - startX
+  
+  targetTranslate = startTranslate + deltaX
+  clampTranslate()
+}
+
+const onDragEnd = () => {
+  isDragging.value = false
+  window.removeEventListener('mousemove', onDragMove)
+  window.removeEventListener('mouseup', onDragEnd)
+  window.removeEventListener('touchmove', onDragMove)
+  window.removeEventListener('touchend', onDragEnd)
+}
+
+const onGalleryWheel = (event) => {
+  const delta = Math.abs(event.deltaX) > Math.abs(event.deltaY) ? event.deltaX : event.deltaY
+  targetTranslate -= delta * 0.8
+  clampTranslate()
+}
+
+const clampTranslate = () => {
+  if (!galleryOuter.value || !galleryTrack.value) return
+  const outerWidth = galleryOuter.value.clientWidth
+  const trackWidth = galleryTrack.value.scrollWidth
+  maxScroll = Math.min(outerWidth - trackWidth - 48, 0)
+  targetTranslate = Math.min(Math.max(targetTranslate, maxScroll), 0)
+}
+
+const onGalleryEnter = () => {
+  isCursorActive.value = true
+  clampTranslate()
+}
+
+const onGalleryLeave = () => {
+  isCursorActive.value = false
+  isDragging.value = false
+}
+
+const onGalleryMouseMove = (event) => {
+  if (!galleryOuter.value) return
+  const rect = galleryOuter.value.getBoundingClientRect()
+  cursorTarget.x = event.clientX - rect.left
+  cursorTarget.y = event.clientY - rect.top
+}
+
 onMounted(async () => {
   const [venueList, trafficTips, recommendationList] = await Promise.all([
     getVenues(),
@@ -327,24 +540,42 @@ onMounted(async () => {
     getRecommendations()
   ])
 
+  venueVisuals.value = venueList.slice(0, 8)
   venues.value = venueList.slice(0, 4)
   traffic.value = trafficTips
   recommendations.value = recommendationList
 
   await nextTick()
-  setupMotion()
+  if (!introPlaying.value) {
+    setupMotion()
+  }
+  animationFrameId = requestAnimationFrame(updatePhysics)
 })
+
+const handleIntroComplete = async () => {
+  introPlaying.value = false
+  await nextTick()
+  setupMotion()
+}
 
 onBeforeUnmount(() => {
   clearHoverAnimations()
   mediaContext?.revert()
   animationContext?.revert()
+  if (animationFrameId) cancelAnimationFrame(animationFrameId)
 })
 </script>
 
 <template>
-  <main ref="homeRoot" class="cosmic-home" aria-label="北京文旅智能推荐助手">
-    <section class="cosmic-hero">
+  <div class="home-route-shell">
+    <IntroPreloader
+      v-if="introPlaying"
+      :items="introVisualItems"
+      @complete="handleIntroComplete"
+    />
+
+    <main ref="homeRoot" class="cosmic-home" :class="{ 'intro-hold': introPlaying }" aria-label="北京文旅智能推荐助手">
+      <section class="cosmic-hero">
       <div class="cosmic-backdrop" aria-hidden="true"></div>
       <div class="cosmic-slider cosmic-slider-top" aria-hidden="true">
         <div class="cosmic-track slide-left">
@@ -369,9 +600,11 @@ onBeforeUnmount(() => {
           <span>也懂你的</span>
           文旅行程。
         </h1>
-        <p class="cosmic-role">
-          A <span>北京文旅智能推荐助手</span> lives in Beijing.
-        </p>
+        <div class="reveal-role-wrapper">
+          <p class="cosmic-role">
+            A <span>北京文旅智能推荐助手</span> lives in Beijing.
+          </p>
+        </div>
         <p class="cosmic-copy">
           熟悉北京文化、旅游、博物馆、展览、历史街区、非遗体验、城市漫游和亲子研学路线。根据你的时间、兴趣、人数和出行方式，生成推荐、讲解、路线规划、预约建议和个性化行程方案。
         </p>
@@ -397,17 +630,47 @@ onBeforeUnmount(() => {
         <router-link class="cosmic-button outline desktop-only" to="/venues">View all work</router-link>
       </div>
 
-      <div class="bento-grid">
-        <article v-for="(venue, index) in venues" :key="venue.id" class="bento-card reveal-item" :class="index % 3 === 0 ? 'wide' : ''">
-          <img :src="venue.image" :alt="venue.name" />
-          <div class="bento-overlay">
-            <span>View — <em>{{ venue.name }}</em></span>
-          </div>
-          <div class="bento-caption">
-            <p>{{ venue.type }}</p>
-            <h3>{{ venue.name }}</h3>
-          </div>
-        </article>
+      <div 
+        class="cosmic-gallery-outer" 
+        ref="galleryOuter"
+        @mouseenter="onGalleryEnter"
+        @mouseleave="onGalleryLeave"
+        @mousemove="onGalleryMouseMove"
+        @wheel.passive="onGalleryWheel"
+      >
+        <!-- Custom Liquid Cursor -->
+        <div 
+          class="gallery-cursor" 
+          ref="galleryCursor"
+          :class="{ 'dragging': isDragging, 'active': isCursorActive }"
+        >
+          <span class="cursor-text">DRAG</span>
+        </div>
+
+        <!-- Draggable Track -->
+        <div 
+          class="cosmic-gallery-track" 
+          ref="galleryTrack"
+          @mousedown="onDragStart"
+          @touchstart="onDragStart"
+        >
+          <article 
+            v-for="venue in venueVisuals" 
+            :key="venue.id" 
+            class="cosmic-gallery-card reveal-item"
+          >
+            <div class="gallery-card-media">
+              <img :src="venue.image" :alt="venue.name" class="gallery-card-img" />
+              <div class="gallery-card-overlay">
+                <span>View — <em>{{ venue.name }}</em></span>
+              </div>
+            </div>
+            <div class="gallery-card-info">
+              <span class="gallery-card-category">{{ venue.type }}</span>
+              <h3 class="gallery-card-title">{{ venue.name }}</h3>
+            </div>
+          </article>
+        </div>
       </div>
     </section>
 
@@ -488,11 +751,16 @@ onBeforeUnmount(() => {
       </div>
       <p class="cosmic-copy wide-copy">{{ traffic?.overview.warning }}</p>
       <router-link class="cosmic-button solid" to="/traffic">查看预测看板</router-link>
-    </section>
-  </main>
+      </section>
+    </main>
+  </div>
 </template>
 
 <style scoped>
+.home-route-shell {
+  min-height: 100vh;
+}
+
 .cosmic-home {
   --cosmic-bg: #050505;
   --cosmic-surface: #14100f;
@@ -509,6 +777,31 @@ onBeforeUnmount(() => {
     var(--cosmic-bg);
   color: var(--cosmic-text);
   font-family: "ZQKNBCGPST", "PingFang SC", "Microsoft YaHei", sans-serif;
+}
+
+.intro-preflight {
+  position: fixed;
+  inset: 0;
+  z-index: 2147483000;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: #111111;
+  color: rgba(255, 255, 255, 0.78);
+  font-family: "Inter", "PingFang SC", system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 300;
+}
+
+:global(.app-shell:has(.intro-preflight) .site-header),
+:global(.app-shell:has(.intro-preloader) .site-header) {
+  opacity: 0;
+  pointer-events: none;
+}
+
+.cosmic-home.intro-hold {
+  opacity: 0;
+  pointer-events: none;
 }
 
 .cosmic-home::before {
@@ -682,10 +975,17 @@ onBeforeUnmount(() => {
   display: block;
 }
 
-.cosmic-role {
+.reveal-role-wrapper {
+  overflow: hidden;
+  display: block;
   margin: 18px 0 10px;
+}
+
+.cosmic-role {
+  margin: 0;
   color: var(--cosmic-muted);
   font-size: clamp(17px, 1.7vw, 23px);
+  will-change: transform;
 }
 
 .cosmic-role span {
@@ -847,115 +1147,155 @@ onBeforeUnmount(() => {
   line-height: 1.8;
 }
 
-.bento-grid {
-  display: grid;
-  grid-template-columns: repeat(12, minmax(0, 1fr));
-  gap: 24px;
+.cosmic-gallery-outer {
+  position: relative;
+  width: 100%;
+  padding: 40px 0;
+  margin-top: 18px;
+  overflow: hidden;
+  user-select: none;
+  cursor: none; /* Hide standard cursor */
 }
 
-.bento-card {
+.gallery-cursor {
+  position: absolute;
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: rgba(251, 246, 233, 0.95);
+  box-shadow: 0 12px 32px rgba(0, 0, 0, 0.25);
+  mix-blend-mode: difference;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  pointer-events: none;
+  z-index: 99;
+  opacity: 0;
+  transform: scale(0);
+  transition: opacity 0.35s cubic-bezier(0.16, 1, 0.3, 1), transform 0.35s cubic-bezier(0.16, 1, 0.3, 1);
+  will-change: transform, opacity;
+}
+
+.gallery-cursor.active {
+  opacity: 1;
+  transform: scale(1);
+}
+
+.gallery-cursor.dragging {
+  background: rgba(216, 184, 108, 0.95);
+  transform: scale(1.18);
+}
+
+.cursor-text {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 10px;
+  font-weight: 700;
+  letter-spacing: 0.15em;
+  color: #050505;
+  text-transform: uppercase;
+}
+
+.cosmic-gallery-track {
+  display: flex;
+  gap: 32px;
+  padding-left: 24px;
+  padding-right: 48px;
+  width: max-content;
+  will-change: transform;
+}
+
+.cosmic-gallery-card {
   position: relative;
-  grid-column: span 5;
-  min-height: 420px;
+  flex: 0 0 auto;
+  width: clamp(280px, 31vw, 460px);
+  aspect-ratio: 1.45 / 1;
   overflow: hidden;
   border: 1px solid rgba(229, 205, 151, 0.16);
-  border-radius: 8px;
+  border-radius: 12px;
   background: var(--cosmic-surface);
   transform-origin: center;
   will-change: transform;
-  box-shadow:
-    0 24px 64px rgba(0, 0, 0, 0.28),
-    inset 0 1px 0 rgba(255, 255, 255, 0.04);
+  box-shadow: 0 24px 64px rgba(0, 0, 0, 0.32);
 }
 
-.bento-card.wide {
-  grid-column: span 7;
-}
-
-.bento-card img {
+.gallery-card-media {
+  position: relative;
   width: 100%;
   height: 100%;
-  min-height: 420px;
+  overflow: hidden;
+}
+
+.gallery-card-img {
+  width: 100%;
+  height: 100%;
   object-fit: cover;
   display: block;
-  transition: transform 0.8s cubic-bezier(0.16, 1, 0.3, 1);
+  transform: scale(1.18);
   will-change: transform;
 }
 
-.bento-card:hover img {
-  transform: scale(1.065);
-}
-
-.bento-card::after {
-  content: "";
-  position: absolute;
-  inset: 0;
-  z-index: 1;
-  pointer-events: none;
-  background-image: radial-gradient(circle, #000 1px, transparent 1px);
-  background-size: 4px 4px;
-  opacity: 0.12;
-  mix-blend-mode: multiply;
-  transition: opacity 0.5s ease;
-}
-
-.bento-card:hover::after {
-  opacity: 0;
-}
-
-.bento-overlay {
+.gallery-card-overlay {
   position: absolute;
   inset: 0;
   z-index: 2;
   display: grid;
   place-items: center;
   opacity: 0;
-  background: transparent;
-  pointer-events: none;
+  background: rgba(5, 5, 5, 0.15);
   transition: opacity 0.5s ease;
 }
 
-.bento-card:hover .bento-overlay {
-  opacity: 0;
+.cosmic-gallery-card:hover .gallery-card-overlay {
+  opacity: 1;
 }
 
-.bento-overlay span {
-  padding: 12px 18px;
+.gallery-card-overlay span {
+  padding: 10px 16px;
   border-radius: 999px;
   background:
     linear-gradient(#fff, #fff) padding-box,
     var(--cosmic-gradient) border-box;
   border: 2px solid transparent;
   color: #0a0a0a;
+  font-size: 11px;
   font-weight: 600;
+  letter-spacing: 0.05em;
 }
 
-.bento-overlay em {
+.gallery-card-overlay em {
   font-family: "ZQKNBCGPST", serif;
+  font-style: italic;
 }
 
-.bento-caption {
+.gallery-card-info {
   position: absolute;
-  left: 22px;
-  right: 22px;
-  bottom: 20px;
+  left: 20px;
+  right: 20px;
+  bottom: 18px;
   z-index: 3;
   color: white;
-  text-shadow: 0 8px 26px rgba(0, 0, 0, 0.45);
+  pointer-events: none;
 }
 
-.bento-caption p {
-  margin: 0 0 8px;
-  color: rgba(255, 255, 255, 0.72);
+.gallery-card-category {
+  font-family: "Inter", system-ui, sans-serif;
+  font-size: 10px;
+  letter-spacing: 0.1em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.62);
+  display: block;
+  margin-bottom: 4px;
 }
 
-.bento-caption h3 {
+.gallery-card-title {
   margin: 0;
-  font-size: clamp(26px, 4vw, 48px);
-  text-shadow:
-    0 0 12px rgba(255, 255, 255, 0.12),
-    0 0 24px rgba(215, 180, 106, 0.1),
-    0 8px 26px rgba(0, 0, 0, 0.48);
+  font-family: "ZQKNBCGPST", serif;
+  font-style: italic;
+  font-size: clamp(20px, 2.2vw, 32px);
+  font-weight: 400;
+  line-height: 1.1;
+  color: #fbf6e9;
+  text-shadow: 0 4px 12px rgba(0, 0, 0, 0.5);
 }
 
 .journal-list {
@@ -1226,8 +1566,12 @@ onBeforeUnmount(() => {
     font-size: clamp(42px, 13vw, 76px);
   }
 
-  .cosmic-role {
+  .reveal-role-wrapper {
     margin: 10px 0 8px;
+  }
+
+  .cosmic-role {
+    margin: 0;
     font-size: 16px;
   }
 
